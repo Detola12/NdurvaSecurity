@@ -1,7 +1,7 @@
 # Ndurva Security
 
-The gate app. A security guard scans or types a code, sees whether to let the
-person through, and logs which way they went. That is the whole product.
+The gate app. A security guard types or scans a code, sees whose pass it is,
+and checks the person in or out. That is the whole product.
 
 React Native, Expo SDK 57, expo-router, TypeScript.
 
@@ -36,19 +36,24 @@ Any password signs you in while the API is still stubbed. Codes to try:
 | `app/(app)/pass.tsx` | The pass, with Check In and Check Out. |
 | `app/(app)/account.tsx` | This shift's passes, and sign out. Not in the Figma. |
 
-**A guard sees a name, a unit and a verdict. Nothing else.** No contact
-details, no payment status, no other property. The types in
-`src/data/verification.ts` are the access boundary: widening `VerifiedPass` is
-a decision someone has to make deliberately, not something that happens by
-adding a field to a screen.
+Built against the Figma security screens (`node-id=110-22378`), which is the
+source of truth for the layout, the light palette, and the keypad-first flow.
+
+## Decisions worth knowing
+
+**A guard sees a name, a unit and a pass. Nothing else.** No contact details,
+no payment status, no other property. The `Pass` type in
+`src/data/verification.ts` is the access boundary: widening it is a decision
+someone has to make deliberately, not something that happens by adding a field
+to a screen.
 
 **One property per account.** It comes from the session, and there is no UI
 anywhere that could change it. That is the guard account model from the PRD,
 enforced by there being nothing to enforce.
 
-**Verifying is not the same as passing through.** The log is written only after
-the guard says which way the person went, and there is a "just checking" exit
-that logs nothing. A denied code logs nothing at all.
+**Looking a code up is not the same as passing through.** Check In and Check
+Out are separate deliberate actions, so opening a pass records nothing. A
+rejected code records nothing at all.
 
 **Typing is the home screen and scanning is secondary**, per the design. It is
 also the right way round in practice: a guest reading a code off a text message
