@@ -20,7 +20,7 @@ function Gate() {
     if (loading) return;
     const inApp = segments[0] === "(app)";
     if (!session && inApp) router.replace("/sign-in");
-    if (session && !inApp) router.replace("/(app)/scan");
+    if (session && !inApp) router.replace("/(app)");
   }, [session, loading, segments, router]);
 
   if (loading) {
@@ -46,7 +46,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SessionProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Gate />
       </SessionProvider>
     </SafeAreaProvider>

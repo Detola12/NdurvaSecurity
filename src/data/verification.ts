@@ -1,184 +1,164 @@
 /**
- * Code verification, and the log of what came through the gate.
+ * Access codes, and the check in / check out state of each pass.
  *
- * Everything here is local seed data standing in for the API. It is kept in one
- * place with a deliberately async surface, so swapping in real endpoints later
- * means changing this file and nothing else.
+ * Local seed data standing in for the API, behind async functions so wiring
+ * real endpoints later means changing this file and nothing else.
  *
- * A guard sees whether a code is valid and who it belongs to. That is all. No
- * tenant contact details, no payment status, no other property. The shape of
- * these types is the access boundary, so widening them is a decision, not an
- * accident.
+ * A guard sees a name, the pass, and whether it has been used. That is all: no
+ * contact details, no payment status, no other property. The shape of `Pass` is
+ * the access boundary, so widening it is a decision rather than an accident.
  */
 
-export type CodeKind = "Resident" | "Visitor";
-export type Direction = "Entry" | "Exit";
+export type PassKind = "Resident" | "Guest";
+/** Whether the pass covers coming in and going out, or entry only. */
+export type PassDirection = "Two-way" | "One-way";
 
-export interface VerifiedPass {
-  outcome: "allowed";
-  kind: CodeKind;
-  /** Who is at the gate. For a visitor, the guest's name. */
-  name: string;
-  unit: string;
-  /** Only set for a visitor pass: the resident expecting them. */
-  host?: string;
-  /** Only set for a resident code: how many people the code covers. */
-  members?: number;
-  validUntil?: string;
+export interface Pass {
+  /** Six digits, stored unformatted. */
   code: string;
-}
-
-export interface RejectedPass {
-  outcome: "denied";
-  code: string;
-  /** Plain language, because it gets read aloud to whoever is at the gate. */
-  reason: string;
-}
-
-export type VerificationResult = VerifiedPass | RejectedPass;
-
-export interface GateEvent {
-  id: string;
   name: string;
+  kind: PassKind;
+  direction: PassDirection;
   unit: string;
-  kind: CodeKind;
-  direction: Direction;
-  /** ISO timestamp, formatted at the point of display. */
-  at: string;
+  createdAt: string;
+  expiresAt: string;
+  checkedInAt: string | null;
+  checkedOutAt: string | null;
+  /** Set when the resident cancelled it, or it has passed its expiry. */
+  invalidReason?: string;
 }
 
-interface SeedPass {
-  code: string;
-  kind: CodeKind;
-  name: string;
-  unit: string;
-  host?: string;
-  members?: number;
-  validUntil?: string;
-  /** Expired and revoked passes both exist, and must read differently. */
-  status: "active" | "expired" | "revoked";
-}
-
-/** Codes issued for the property this guard is posted to. */
-const passes: SeedPass[] = [
-  { code: "482913", kind: "Resident", name: "Chisom Okafor", unit: "House 5A, Road 3", members: 4, status: "active" },
-  { code: "729140", kind: "Resident", name: "Abiodun Adeleke", unit: "House 12, Road 7", members: 3, status: "active" },
-  { code: "305518", kind: "Resident", name: "Ngozi Eze", unit: "Flat 2B, Block C", members: 2, status: "active" },
+let passes: Pass[] = [
+  {
+    code: "482212",
+    name: "Emeka Adinuke",
+    kind: "Guest",
+    direction: "Two-way",
+    unit: "House 5A, Road 3",
+    createdAt: "Created today 02:30 PM",
+    expiresAt: "Expires tonight at 08:00 PM",
+    checkedInAt: null,
+    checkedOutAt: null,
+  },
+  {
+    code: "482913",
+    name: "Chisom Okafor",
+    kind: "Resident",
+    direction: "Two-way",
+    unit: "House 5A, Road 3",
+    createdAt: "Resident code",
+    expiresAt: "Does not expire",
+    checkedInAt: null,
+    checkedOutAt: null,
+  },
   {
     code: "118342",
-    kind: "Visitor",
     name: "Daniel Umeh",
-    unit: "House 5A, Road 3",
-    host: "Chisom Okafor",
-    validUntil: "Today, 11:59 PM",
-    status: "active",
+    kind: "Guest",
+    direction: "One-way",
+    unit: "House 12, Road 7",
+    createdAt: "Created today 09:15 AM",
+    expiresAt: "Expires tonight at 11:59 PM",
+    checkedInAt: "10:02 AM",
+    checkedOutAt: null,
   },
   {
     code: "660271",
-    kind: "Visitor",
     name: "Grace Ibe",
-    unit: "House 12, Road 7",
-    host: "Abiodun Adeleke",
-    validUntil: "Yesterday, 11:59 PM",
-    status: "expired",
+    kind: "Guest",
+    direction: "Two-way",
+    unit: "Flat 2B, Block C",
+    createdAt: "Created yesterday 04:00 PM",
+    expiresAt: "Expired yesterday at 11:59 PM",
+    checkedInAt: null,
+    checkedOutAt: null,
+    invalidReason: "This pass has expired. Ask the resident to send a new one.",
   },
   {
     code: "904417",
-    kind: "Visitor",
     name: "Tunde Bello",
+    kind: "Guest",
+    direction: "One-way",
     unit: "Flat 2B, Block C",
-    host: "Ngozi Eze",
-    status: "revoked",
+    createdAt: "Created today 11:20 AM",
+    expiresAt: "Cancelled",
+    checkedInAt: null,
+    checkedOutAt: null,
+    invalidReason: "This pass was cancelled by the resident.",
   },
 ];
 
-const denialReason: Record<Exclude<SeedPass["status"], "active">, string> = {
-  expired: "This pass has expired. Ask the resident to issue a new one.",
-  revoked: "This pass was cancelled by the resident.",
-};
-
-let log: GateEvent[] = [
-  { id: "g-1", name: "Chisom Okafor", unit: "House 5A, Road 3", kind: "Resident", direction: "Entry", at: isoAgo(35) },
-  { id: "g-2", name: "Daniel Umeh", unit: "House 5A, Road 3", kind: "Visitor", direction: "Entry", at: isoAgo(74) },
-  { id: "g-3", name: "Ngozi Eze", unit: "Flat 2B, Block C", kind: "Resident", direction: "Exit", at: isoAgo(126) },
-  { id: "g-4", name: "Abiodun Adeleke", unit: "House 12, Road 7", kind: "Resident", direction: "Entry", at: isoAgo(190) },
-];
-
-function isoAgo(minutes: number) {
-  return new Date(Date.now() - minutes * 60_000).toISOString();
-}
-
-/** A scanned QR may carry a URL or a prefixed payload; a typed code will not. */
-export function normaliseCode(raw: string) {
-  const digits = raw.trim().match(/(\d{6})(?!.*\d{6})/);
-  return digits ? digits[1] : raw.trim().toUpperCase();
-}
-
-export async function verifyCode(raw: string): Promise<VerificationResult> {
-  const code = normaliseCode(raw);
-  // Stands in for the round trip, so the UI is built against a real pending state.
-  await new Promise((resolve) => setTimeout(resolve, 350));
-
-  if (!/^\d{6}$/.test(code)) {
-    return { outcome: "denied", code, reason: "That is not a valid Ndurva code. Codes are six digits." };
-  }
-
-  const pass = passes.find((p) => p.code === code);
-  if (!pass) {
-    return { outcome: "denied", code, reason: "No pass found for this code at this property." };
-  }
-  if (pass.status !== "active") {
-    return { outcome: "denied", code, reason: denialReason[pass.status] };
-  }
-
-  return {
-    outcome: "allowed",
-    kind: pass.kind,
-    name: pass.name,
-    unit: pass.unit,
-    host: pass.host,
-    members: pass.members,
-    validUntil: pass.validUntil,
-    code: pass.code,
-  };
-}
-
 const listeners = new Set<() => void>();
 
-export function subscribeToLog(listener: () => void) {
+function computeUsed() {
+  return passes.filter((p) => p.checkedInAt || p.checkedOutAt);
+}
+
+/**
+ * Cached so the reference only changes when the data does. `useSyncExternalStore`
+ * compares snapshots by identity, so returning a freshly filtered array on every
+ * call makes it re-render forever.
+ */
+let usedCache: Pass[] = computeUsed();
+
+function emit() {
+  usedCache = computeUsed();
+  for (const listener of listeners) listener();
+}
+
+export function subscribeToPasses(listener: () => void) {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
 }
 
-export function getLog() {
-  return log;
+/** A scanned QR may carry a URL or a prefix; a typed code will not. */
+export function normaliseCode(raw: string) {
+  const match = raw.replace(/\D/g, "").match(/\d{6}/);
+  return match ? match[0] : raw.replace(/\D/g, "");
 }
 
-/** Records a movement. Called only after a guard confirms which way they went. */
-export function recordMovement(pass: VerifiedPass, direction: Direction) {
-  const event: GateEvent = {
-    id: `g-${Date.now()}`,
-    name: pass.name,
-    unit: pass.unit,
-    kind: pass.kind,
-    direction,
-    at: new Date().toISOString(),
-  };
-  log = [event, ...log];
-  for (const listener of listeners) listener();
-  return event;
+/** `482212` reads as `482 - 212`, which is how the design shows it. */
+export function formatCode(code: string) {
+  return code.length === 6 ? `${code.slice(0, 3)} - ${code.slice(3)}` : code;
 }
 
-export function todayTotals(events: GateEvent[] = log) {
-  const today = new Date().toDateString();
-  const onToday = events.filter((e) => new Date(e.at).toDateString() === today);
-  const entries = onToday.filter((e) => e.direction === "Entry").length;
-  const exits = onToday.filter((e) => e.direction === "Exit").length;
-  return { entries, exits, inside: Math.max(0, entries - exits) };
+export type LookupResult = { ok: true; pass: Pass } | { ok: false; message: string };
+
+export async function lookupCode(raw: string): Promise<LookupResult> {
+  const code = normaliseCode(raw);
+  // Stands in for the round trip, so the UI is built against a real pending state.
+  await new Promise((resolve) => setTimeout(resolve, 350));
+
+  if (code.length !== 6) return { ok: false, message: "Wrong code please try again" };
+
+  const pass = passes.find((p) => p.code === code);
+  if (!pass) return { ok: false, message: "Wrong code please try again" };
+  if (pass.invalidReason) return { ok: false, message: pass.invalidReason };
+
+  return { ok: true, pass };
 }
 
-export function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+export function getPass(code: string) {
+  return passes.find((p) => p.code === normaliseCode(code)) ?? null;
+}
+
+function stamp() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+export function checkIn(code: string) {
+  passes = passes.map((p) => (p.code === code ? { ...p, checkedInAt: stamp() } : p));
+  emit();
+}
+
+export function checkOut(code: string) {
+  passes = passes.map((p) => (p.code === code ? { ...p, checkedOutAt: stamp() } : p));
+  emit();
+}
+
+/** Passes touched on this shift, for the account screen. */
+export function usedPasses() {
+  return usedCache;
 }
