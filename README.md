@@ -32,7 +32,7 @@ Any password signs you in while the API is still stubbed. Codes to try:
 | --- | --- |
 | `app/sign-in.tsx` | Email and password, forgot password, biometric option. |
 | `app/(app)/index.tsx` | The keypad. Home, per the design. |
-| `app/(app)/scan.tsx` | Camera, reached from the keypad. |
+| `app/(app)/scan.tsx` | Camera, reached from the keypad. Reticle, torch, typed fallback. |
 | `app/(app)/pass.tsx` | The pass, with Check In and Check Out. |
 | `app/(app)/account.tsx` | This shift's passes, and sign out. Not in the Figma. |
 
@@ -67,6 +67,17 @@ rejection screen the guard has to back out of.
 **Check out is disabled until check in has happened**, and a one-way pass never
 offers it. Nothing in the design says this, but a check out with no check in is
 a record of something that did not happen.
+
+**The scanner is not in the Figma.** It is the second half of a flow the design
+does specify, since the keypad offers "Scan Resident QR Code". It reads QR only,
+frames the code in a reticle cut out of a scrim (a printed code is mostly white
+paper, and white chrome over it is unreadable), offers the torch for a dark gate,
+and always keeps "Type the code instead" on screen. A rejected code stays on the
+camera and says why, rather than bouncing the guard back to the keypad.
+
+**Barcode scanning does not work on Expo web.** The web build needs a
+`BarcodeDetector`, which most desktop browsers do not ship. Everything else on
+the screen renders there; scanning itself is native-only.
 
 **Scans are debounced.** `onBarcodeScanned` fires many times a second while a
 code is in frame; without the guard, one scan pushes a stack of duplicate

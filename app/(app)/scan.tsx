@@ -38,7 +38,7 @@ export default function ScanScreen() {
       setError(result.message);
       if (Platform.OS !== "web") void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       // Let them try again rather than stranding them on a dead screen.
-      window.setTimeout(() => {
+      setTimeout(() => {
         handled.current = false;
       }, 1500);
       return;
@@ -89,28 +89,49 @@ export default function ScanScreen() {
           </Pressable>
         </View>
 
+        {/* The reticle is a hole in a scrim: a code fills the frame with white,
+            and white-on-white chrome is unreadable without it. */}
         <View style={s.reticleWrap} pointerEvents="none">
-          <View style={s.reticle}>
-            <View style={[s.corner, s.tl]} />
-            <View style={[s.corner, s.tr]} />
-            <View style={[s.corner, s.bl]} />
-            <View style={[s.corner, s.br]} />
+          <View style={s.scrim} />
+          <View style={s.reticleRow}>
+            <View style={s.scrim} />
+            <View style={s.reticle}>
+              <View style={[s.corner, s.tl]} />
+              <View style={[s.corner, s.tr]} />
+              <View style={[s.corner, s.bl]} />
+              <View style={[s.corner, s.br]} />
+            </View>
+            <View style={s.scrim} />
           </View>
-          <Text style={s.hint}>Point at the resident or guest QR code</Text>
-          {!!error && <Text style={s.scanError}>{error}</Text>}
+          <View style={[s.scrim, s.below]}>
+            <Text style={s.hint}>Point at the resident or guest QR code</Text>
+            {!!error && <Text style={s.scanError}>{error}</Text>}
+          </View>
         </View>
 
-        <Button title="Type the code instead" variant="outline" onPress={() => router.replace("/(app)")} />
+        <View style={s.bottom}>
+          <Button title="Type the code instead" variant="outline" onPress={() => router.replace("/(app)")} />
+        </View>
       </View>
     </View>
   );
 }
 
+/** Dark enough to read white text over a code that is mostly white paper. */
+const SCRIM = "rgba(0,0,0,0.55)";
+
 const s = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   dark: { flex: 1, backgroundColor: "#000000" },
-  overlay: { flex: 1, justifyContent: "space-between", paddingHorizontal: spacing.md },
-  topRow: { flexDirection: "row", justifyContent: "space-between" },
+  overlay: { flex: 1, justifyContent: "space-between" },
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+    backgroundColor: SCRIM,
+  },
+  bottom: { paddingHorizontal: spacing.md, paddingTop: spacing.md, backgroundColor: SCRIM },
   round: {
     width: 44,
     height: 44,
@@ -122,8 +143,13 @@ const s = StyleSheet.create({
   roundOn: { backgroundColor: colors.primary },
   roundGlyph: { color: colors.onDark, fontSize: 22 },
 
-  reticleWrap: { alignItems: "center", gap: spacing.md },
-  reticle: { width: 240, height: 240 },
+  reticleWrap: { flex: 1 },
+  // Stretch, not centre: the side scrims take their height from the row, and
+  // centring collapses them to nothing.
+  reticleRow: { flexDirection: "row", alignItems: "stretch", height: 260 },
+  scrim: { flex: 1, backgroundColor: SCRIM },
+  below: { alignItems: "center", paddingTop: spacing.lg, paddingHorizontal: spacing.md, gap: spacing.sm },
+  reticle: { width: 260, height: 260 },
   corner: { position: "absolute", width: 38, height: 38, borderColor: colors.primary },
   tl: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: radius.lg },
   tr: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: radius.lg },
