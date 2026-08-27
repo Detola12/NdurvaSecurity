@@ -99,3 +99,37 @@ result screens.
 - **The account screen is not in the Figma.** Added because signing out has to
   live somewhere. Replace it if the design covers this later.
 - **Sign-in accepts any password.** It has to, until there is an API.
+
+## Running it on the web
+
+The gate app also ships as an installable PWA, so a guard can add it to a
+home screen instead of waiting on an app store.
+
+```bash
+npm run web        # dev server
+npm run build:web  # static export into dist/
+```
+
+Serve `dist/` from any static host. Two things it needs in production:
+
+- **HTTPS.** Service workers and the camera both refuse to run without it.
+- **`/api` proxied on the same origin**, or the service worker's exclusion for
+  it will not match. It deliberately never caches API responses: a stale answer
+  about whether a pass is valid would open a gate on a pass revoked an hour ago.
+
+### What the service worker does
+
+Precaches the app shell, so the app opens on a dead connection rather than
+showing the browser's offline page — a gate house is often on the edge of a
+signal, and typing in a code read out over the phone still works with the
+network away. Navigations try the network first so a deploy is picked up;
+hashed assets are served from cache.
+
+### Known limits on the web
+
+- **QR scanning does not work in Safari on iOS.** `expo-camera` scans through
+  the browser's `BarcodeDetector`, which Chrome on Android has and Safari does
+  not. Typing the code — the home screen's primary path — works everywhere, so
+  the app is usable on an iPhone; the scanner is not.
+- **Push notifications** need the app installed to the home screen on iOS, and
+  are unreliable there generally.
