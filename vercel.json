@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/security", "destination": "/" },
+    { "source": "/security/:path*", "destination": "/:path*" }
+  ],
   "headers": [
     {
       "source": "/sw.js",

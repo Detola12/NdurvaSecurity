@@ -117,6 +117,22 @@ Serve `dist/` from any static host. Two things it needs in production:
   it will not match. It deliberately never caches API responses: a stale answer
   about whether a pass is valid would open a gate on a pass revoked an hour ago.
 
+### Where it is served
+
+`ndurva.com/security`, not a subdomain of its own — which is why
+`experiments.baseUrl` in `app.json` is `/security`, the manifest's `start_url`
+and `scope` are `/security/`, and the worker is registered from
+`/security/sw.js`, that being the widest scope a worker at that path may claim.
+
+The main site rewrites `/security/:path*` to this project with the prefix
+stripped, so this project still serves from its own root; `baseUrl` is what
+makes the app emit `/security/`-prefixed links for the browser. The prefix is
+accepted here directly too, so a preview deployment works on its own URL.
+
+Moving the app elsewhere means changing four things together: `baseUrl`, the
+manifest, the registration path, and the main site's rewrite. The worker itself
+derives its base from where it is served, so it needs no edit.
+
 ### What the service worker does
 
 Precaches the app shell, so the app opens on a dead connection rather than

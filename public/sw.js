@@ -6,17 +6,32 @@
  * browser's offline page, and a manager can still read a code out over the
  * phone while the network is away.
  *
- * What is deliberately NOT cached: anything under /api. A stale answer about
- * whether a pass is valid is worse than no answer — it would open a gate on a
- * pass revoked an hour ago. Those requests go to the network or they fail.
+ * What is deliberately NOT cached: anything that looks like an API call. A
+ * stale answer about whether a pass is valid is worse than no answer — it would
+ * open a gate on a pass revoked an hour ago. Those requests go to the network
+ * or they fail.
+ *
+ * The app lives under /security on ndurva.com rather than on a domain of its
+ * own, so BASE is the root of everything here: the worker's own scope, the
+ * shell it falls back to, and the paths it precaches. Derived from where this
+ * file is served rather than written down, so moving the app is a matter of
+ * moving the files.
  */
 
-const VERSION = "ndurva-gate-v1";
+const VERSION = "ndurva-gate-v2";
 const SHELL = `${VERSION}-shell`;
+
+/** "/security/" — the directory this worker was served from. */
+const BASE = new URL("./", self.location).pathname;
 
 // Filled at install with whatever the build produced, plus the entry points
 // that are stable across builds.
-const CORE = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CORE = [
+  BASE,
+  `${BASE}manifest.webmanifest`,
+  `${BASE}icons/icon-192.png`,
+  `${BASE}icons/icon-512.png`,
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -53,9 +68,14 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // Someone else's origin, or the API. Neither is ours to cache.
+  // Someone else's origin, or an API call. Neither is ours to cache.
+  //
+  // The API is matched anywhere in the path, not just at the root: a page
+  // inside our scope can call /backend/... or /security/api/..., and both
+  // reach this worker. Whichever the backend ends up being served at, a
+  // verification must not come from a cache.
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/")) return;
+  if (/(^|\/)(api|backend)\//.test(url.pathname)) return;
 
   // Navigations: try the network so a deployed change is picked up, and fall
   // back to the cached shell when there is nothing to reach.
@@ -69,11 +89,11 @@ self.addEventListener("fetch", (event) => {
           // error page instead of the login screen.
           if (response.ok) {
             const copy = response.clone();
-            void caches.open(SHELL).then((cache) => cache.put("/", copy));
+            void caches.open(SHELL).then((cache) => cache.put(BASE, copy));
           }
           return response;
         })
-        .catch(() => caches.match("/").then((cached) => cached ?? Response.error())),
+        .catch(() => caches.match(BASE).then((cached) => cached ?? Response.error())),
     );
     return;
   }

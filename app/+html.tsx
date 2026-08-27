@@ -28,17 +28,19 @@ export default function Root({ children }: PropsWithChildren) {
           content="Check resident and visitor codes at the gate, and log who comes in and who leaves."
         />
 
-        <link rel="manifest" href="/manifest.webmanifest" />
+        {/* The app is served under /security on ndurva.com rather than on a
+            domain of its own, so every absolute path here carries that prefix.
+            Expo's baseUrl rewrites the bundle and its own favicon; anything
+            hand-written, like these, it never sees. */}
+        <link rel="manifest" href="/security/manifest.webmanifest" />
         <meta name="theme-color" content="#0D0D0D" />
         <meta name="color-scheme" content="dark" />
 
         {/* iOS ignores the manifest for both of these. */}
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/security/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Ndurva Gate" />
-
-        <link rel="icon" href="/favicon.ico" />
 
         {/* Expo's own reset: stops the body scrolling behind fixed content. */}
         <ScrollViewStyleReset />
@@ -70,7 +72,10 @@ const shellStyle = `
 const registerServiceWorker = `
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('/sw.js').catch(function () {});
+      // Served from /security/, which is also the widest scope a worker at
+      // that path is allowed to claim — so it controls the gate app and
+      // nothing else on ndurva.com.
+      navigator.serviceWorker.register('/security/sw.js', { scope: '/security/' }).catch(function () {});
       var reloading = false;
       navigator.serviceWorker.addEventListener('controllerchange', function () {
         if (reloading) return;

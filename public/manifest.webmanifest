@@ -2,16 +2,17 @@
   "name": "Ndurva Security",
   "short_name": "Ndurva Gate",
   "description": "Check resident and visitor codes at the gate, and log who comes in and who leaves.",
-  "start_url": "/",
-  "scope": "/",
+  "id": "/security/",
+  "start_url": "/security/",
+  "scope": "/security/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0D0D0D",
   "theme_color": "#0D0D0D",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/security/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/security/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/security/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/security/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
