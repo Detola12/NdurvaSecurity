@@ -63,8 +63,14 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          void caches.open(SHELL).then((cache) => cache.put("/", copy));
+          // Only a good answer is worth keeping. Caching the response to every
+          // navigation lets a single 404 — a mistyped URL, a route dropped by a
+          // deploy — overwrite the shell, and the app then opens offline on that
+          // error page instead of the login screen.
+          if (response.ok) {
+            const copy = response.clone();
+            void caches.open(SHELL).then((cache) => cache.put("/", copy));
+          }
           return response;
         })
         .catch(() => caches.match("/").then((cached) => cached ?? Response.error())),
