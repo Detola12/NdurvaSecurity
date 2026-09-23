@@ -75,9 +75,10 @@ paper, and white chrome over it is unreadable), offers the torch for a dark gate
 and always keeps "Type the code instead" on screen. A rejected code stays on the
 camera and says why, rather than bouncing the guard back to the keypad.
 
-**Barcode scanning does not work on Expo web.** The web build needs a
-`BarcodeDetector`, which most desktop browsers do not ship. Everything else on
-the screen renders there; scanning itself is native-only.
+**On the web, scanning falls back to a WebAssembly decoder.** Browsers
+without a native `BarcodeDetector` (Safari, Firefox) get expo-camera's ZXing
+polyfill. Its decoder is served from our own origin rather than a CDN; see
+below.
 
 **Scans are debounced.** `onBarcodeScanned` fires many times a second while a
 code is in frame; without the guard, one scan pushes a stack of duplicate
@@ -107,8 +108,14 @@ home screen instead of waiting on an app store.
 
 ```bash
 npm run web        # dev server
-npm run build:web  # static export into dist/
+npm run build:web  # static export into dist/, then scripts/build-pwa.mjs
 ```
+
+`build:web` is two steps, and the second matters: `scripts/build-pwa.mjs`
+writes the list of files the build produced, and a version hashed from them,
+into `dist/sw.js`, and copies the scanner's decoder into `dist/zxing/`. A bare
+`expo export` still runs online but does not work offline. Vercel runs
+`build:web`.
 
 Serve `dist/` from any static host. Two things it needs in production:
 
@@ -135,17 +142,26 @@ derives its base from where it is served, so it needs no edit.
 
 ### What the service worker does
 
-Precaches the app shell, so the app opens on a dead connection rather than
-showing the browser's offline page — a gate house is often on the edge of a
-signal, and typing in a code read out over the phone still works with the
-network away. Navigations try the network first so a deploy is picked up;
-hashed assets are served from cache.
+Precaches the whole build at install, about 2.6 MB with the decoder: the
+shell, every JS chunk, the icons, and the scanner's decoder. A gate house is
+often on the edge of a signal, so an installed app opens, signs in, takes a
+typed code and scans a QR on a dead connection, from the first offline launch
+on. Navigations try the network first so a deploy is picked up; hashed assets
+are served from cache.
+
+Each deploy changes the worker's version, so the browser installs it, drops the
+previous build's cache, and reloads an open app once. A first visit never
+reloads, because there is nothing to replace yet.
 
 ### Known limits on the web
 
-- **QR scanning does not work in Safari on iOS.** `expo-camera` scans through
-  the browser's `BarcodeDetector`, which Chrome on Android has and Safari does
-  not. Typing the code — the home screen's primary path — works everywhere, so
-  the app is usable on an iPhone; the scanner is not.
+- **Scanning on iOS runs through the polyfill, and has not been tried on a real
+  iPhone.** Chrome on Android uses its native `BarcodeDetector`; Safari has none,
+  so it decodes with ZXing in WebAssembly. That path is tested in Chromium with
+  the native detector removed, offline, reading a pass off a camera stream,
+  but not on Safari. Typing the code works everywhere regardless.
+- **The decoder is pinned to the polyfill's version.** `src/lib/scanner.web.ts`
+  asks for `/security/zxing/<version>/zxing_reader.wasm`, and the build fails if
+  the installed `zxing-wasm` is not the version `barcode-detector` expects.
 - **Push notifications** need the app installed to the home screen on iOS, and
   are unreliable there generally.
