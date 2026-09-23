@@ -4,7 +4,10 @@ import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SessionProvider, useSessionContext } from "@/data/SessionContext";
+import { prepareScanner } from "@/lib/scanner";
 import { colors } from "@/lib/theme";
+
+prepareScanner();
 
 /**
  * Sends the guard to the right place once the stored session has been read.

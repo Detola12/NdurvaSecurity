@@ -66,8 +66,8 @@ const shellStyle = `
 /**
  * Registers the worker after load, so it never competes with the first render.
  *
- * A new worker reloads the page once — tracked by a flag so a redeploy cannot
- * put a guard in a reload loop mid-shift.
+ * A deploy's new worker reloads the page once — tracked by a flag so a redeploy
+ * cannot put a guard in a reload loop mid-shift.
  */
 const registerServiceWorker = `
   if ('serviceWorker' in navigator) {
@@ -76,9 +76,12 @@ const registerServiceWorker = `
       // that path is allowed to claim — so it controls the gate app and
       // nothing else on ndurva.com.
       navigator.serviceWorker.register('/security/sw.js', { scope: '/security/' }).catch(function () {});
+      // A first visit gains a controller too, but there is no old build to
+      // replace then, so reloading would only throw away what was typed.
+      var hadController = !!navigator.serviceWorker.controller;
       var reloading = false;
       navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (reloading) return;
+        if (reloading || !hadController) return;
         reloading = true;
         window.location.reload();
       });

@@ -18,20 +18,28 @@
  * moving the files.
  */
 
-const VERSION = "ndurva-gate-v2";
+// Both stamped by scripts/build-pwa.mjs at build time: the version from a hash
+// of the build, so every deploy installs a fresh worker and clears the last
+// build's cache, and the list with every file the build produced. Left as they
+// are under `npm run web`, where there is no build to list.
+const VERSION = "ndurva-gate-dev";
+const PRECACHE = [];
+
 const SHELL = `${VERSION}-shell`;
 
 /** "/security/" — the directory this worker was served from. */
 const BASE = new URL("./", self.location).pathname;
 
-// Filled at install with whatever the build produced, plus the entry points
-// that are stable across builds.
+// The whole app — bundle, icons, the scanner's decoder — so an installed app
+// opens and works on its very first offline launch, not only once the pages
+// it needs have happened to be fetched while this worker was in control.
 const CORE = [
   BASE,
   `${BASE}manifest.webmanifest`,
   `${BASE}icons/icon-192.png`,
   `${BASE}icons/icon-512.png`,
-];
+  ...PRECACHE.map((path) => new URL(path, `${self.location.origin}${BASE}`).pathname),
+].filter((url, i, all) => all.indexOf(url) === i);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
