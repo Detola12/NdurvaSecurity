@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TagCross, TickCircle } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { useSessionContext } from "@/data/SessionContext";
 import { lookupCode } from "@/data/verification";
@@ -58,7 +59,7 @@ export default function HomeScreen() {
       <View style={[s.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={s.headerText}>
           <Text style={s.greeting}>{greeting()}</Text>
-          <Text style={s.property}>{session?.property ?? "Gate"} Security 👋</Text>
+          <Text style={s.property}>{session?.property ?? "Gate"} Security</Text>
         </View>
         <Pressable
           accessibilityRole="button"
@@ -120,9 +121,13 @@ export default function HomeScreen() {
                   pressed && !disabled && s.keyPressed,
                 ]}
               >
-                <Text style={[s.keyText, isOk && s.keyTextOk]}>
-                  {key === "del" ? "⌫" : isOk ? "✓" : key}
-                </Text>
+                {key === "del" ? (
+                  <TagCross size={26} color={colors.text} />
+                ) : isOk ? (
+                  <TickCircle size={28} color={colors.onDark} />
+                ) : (
+                  <Text style={s.keyText}>{key}</Text>
+                )}
               </Pressable>
             );
           })}
@@ -200,5 +205,4 @@ const s = StyleSheet.create({
   keyOk: { backgroundColor: colors.primary, borderColor: colors.primary },
   keyDisabled: { opacity: 0.45 },
   keyText: { color: colors.text, fontSize: 22, fontWeight: "600" },
-  keyTextOk: { color: colors.onDark, fontSize: 24 },
 });

@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ArrowLeft2 } from "@/components/icons";
 import { Button, Card } from "@/components/ui";
 import { useSessionContext } from "@/data/SessionContext";
 import { formatCode, subscribeToPasses, usedPasses } from "@/data/verification";
@@ -30,7 +31,7 @@ export default function AccountScreen() {
     >
       <View style={s.header}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} style={s.back} hitSlop={8}>
-          <Text style={s.backGlyph}>‹</Text>
+          <ArrowLeft2 size={24} color={colors.text} />
         </Pressable>
         <Text style={s.title}>Account</Text>
         <View style={s.backSpacer} />
@@ -81,7 +82,6 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   backSpacer: { width: 40 },
-  backGlyph: { color: colors.text, fontSize: 26, lineHeight: 28, marginTop: -4 },
   title: { color: colors.text, fontSize: 18, fontWeight: "700" },
 
   identity: { gap: 2, marginTop: spacing.sm },

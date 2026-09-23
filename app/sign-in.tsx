@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Eye, EyeSlash } from "@/components/icons";
 import { Button, Field, NdurvaLogo } from "@/components/ui";
 import { useSessionContext } from "@/data/SessionContext";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -75,7 +76,7 @@ export default function SignInScreen() {
             style={s.reveal}
             hitSlop={10}
           >
-            <Text style={s.revealGlyph}>{reveal ? "🙈" : "👁"}</Text>
+            {reveal ? <EyeSlash size={20} color={colors.textMuted} /> : <Eye size={20} color={colors.textMuted} />}
           </Pressable>
         </View>
 
@@ -124,7 +125,6 @@ const s = StyleSheet.create({
 
   passwordInput: { paddingRight: 48 },
   reveal: { position: "absolute", right: 14, bottom: 15 },
-  revealGlyph: { fontSize: 18 },
 
   forgotWrap: { alignSelf: "flex-end" },
   forgot: { color: colors.primary, fontSize: 14, fontWeight: "600" },
