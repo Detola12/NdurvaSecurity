@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ArrowLeft2 } from "@/components/icons";
 import { Button, Card } from "@/components/ui";
 import { checkIn, checkOut, formatCode, getPass, subscribeToPasses } from "@/data/verification";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -57,7 +58,7 @@ export default function PassScreen() {
         style={s.back}
         hitSlop={8}
       >
-        <Text style={s.backGlyph}>‹</Text>
+        <ArrowLeft2 size={24} color={colors.text} />
       </Pressable>
 
       <Card style={s.card}>
@@ -122,7 +123,6 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  backGlyph: { color: colors.text, fontSize: 26, lineHeight: 28, marginTop: -4 },
 
   card: { gap: spacing.sm, padding: spacing.lg },
   name: { color: colors.text, fontSize: 20, fontWeight: "700" },

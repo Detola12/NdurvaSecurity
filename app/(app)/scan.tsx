@@ -4,6 +4,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ArrowLeft2, Flash, FlashSlash } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { lookupCode } from "@/data/verification";
 import { colors, radius, spacing } from "@/lib/theme";
@@ -76,7 +77,7 @@ export default function ScanScreen() {
       <View style={[s.overlay, { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom + spacing.md }]}>
         <View style={s.topRow}>
           <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.replace("/(app)")} style={s.round}>
-            <Text style={s.roundGlyph}>‹</Text>
+            <ArrowLeft2 size={24} color={colors.onDark} />
           </Pressable>
           <Pressable
             accessibilityRole="button"
@@ -85,7 +86,7 @@ export default function ScanScreen() {
             onPress={() => setTorch((on) => !on)}
             style={[s.round, torch && s.roundOn]}
           >
-            <Text style={s.roundGlyph}>{torch ? "🔦" : "💡"}</Text>
+            {torch ? <Flash size={22} color={colors.onDark} variant="Bold" /> : <FlashSlash size={22} color={colors.onDark} />}
           </Pressable>
         </View>
 
@@ -141,7 +142,6 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   roundOn: { backgroundColor: colors.primary },
-  roundGlyph: { color: colors.onDark, fontSize: 22 },
 
   reticleWrap: { flex: 1 },
   // Stretch, not centre: the side scrims take their height from the row, and
