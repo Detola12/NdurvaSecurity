@@ -2,38 +2,40 @@ import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
- * The signed-in guard.
+ * The signed-in estate.
  *
- * A guard account belongs to exactly one property, and the property comes from
- * the session rather than being chosen in the app. That is the whole point of
- * the account model: a guard cannot verify codes for somewhere they are not
- * posted, and there is no UI here that could let them try.
+ * There are no personal guard accounts. Each estate has one gate account,
+ * created for it by Ndurva, and every guard on duty at that gate signs in with
+ * it. The property comes from the account rather than being chosen in the app,
+ * so a gate phone can only ever verify codes for the estate it belongs to, and
+ * there is no UI here that could let it try another.
  */
 
-const STORAGE_KEY = "ndurva_security_session";
+// Renamed from the personal-account key, so a phone still signed in as an
+// individual guard from before is signed out rather than carried over.
+const STORAGE_KEY = "ndurva_security_estate_session";
 
-export interface GuardSession {
-  name: string;
-  email: string;
-  /** The single property this account is posted to. */
+export interface EstateSession {
+  /** The estate this gate account belongs to, and the only one it works for. */
   property: string;
+  /** The gate account's login, shared by everyone on duty there. */
+  email: string;
   token: string;
 }
 
 export interface SessionState {
-  session: GuardSession | null;
+  session: EstateSession | null;
   /** Distinguishes "signed out" from "not read from storage yet". */
   loading: boolean;
 }
 
 /** Placeholder for the real endpoint. Any password is accepted for now. */
-export async function signIn(email: string, password: string): Promise<GuardSession> {
+export async function signIn(email: string, password: string): Promise<EstateSession> {
   await new Promise((resolve) => setTimeout(resolve, 500));
-  if (!email.trim() || !password) throw new Error("Enter your email and password.");
+  if (!email.trim() || !password) throw new Error("Enter the estate's email and password.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) throw new Error("That email address does not look right.");
 
-  const session: GuardSession = {
-    name: "Musa Ibrahim",
+  const session: EstateSession = {
     email: email.trim().toLowerCase(),
     property: "Winter Estate",
     token: "dev-token",
@@ -46,10 +48,11 @@ export async function signOut() {
   await AsyncStorage.removeItem(STORAGE_KEY);
 }
 
-export async function readSession(): Promise<GuardSession | null> {
+export async function readSession(): Promise<EstateSession | null> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as GuardSession) : null;
+    const session = raw ? (JSON.parse(raw) as Partial<EstateSession>) : null;
+    return session?.property && session.email && session.token ? (session as EstateSession) : null;
   } catch {
     // A corrupt or unreadable session is the same as no session.
     return null;

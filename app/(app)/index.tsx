@@ -68,7 +68,7 @@ export default function HomeScreen() {
           style={s.avatar}
           hitSlop={8}
         >
-          <Text style={s.avatarText}>{(session?.name ?? "G").slice(0, 1).toUpperCase()}</Text>
+          <Text style={s.avatarText}>{(session?.property ?? "G").slice(0, 1).toUpperCase()}</Text>
         </Pressable>
       </View>
 

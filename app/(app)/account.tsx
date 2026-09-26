@@ -38,10 +38,11 @@ export default function AccountScreen() {
       </View>
 
       <Card style={s.identity}>
-        <Text style={s.name}>{session?.name}</Text>
-        <Text style={s.meta}>{session?.property}</Text>
+        <Text style={s.name}>{session?.property}</Text>
         <Text style={s.meta}>{session?.email}</Text>
-        <Text style={s.scope}>This account works at {session?.property} only.</Text>
+        <Text style={s.scope}>
+          The gate account for {session?.property}, shared by everyone on duty. It works here only.
+        </Text>
       </Card>
 
       <Text style={s.sectionTitle}>This shift</Text>

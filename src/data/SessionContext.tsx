@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { readSession, signIn as apiSignIn, signOut as apiSignOut, type GuardSession } from "@/data/session";
+import { readSession, signIn as apiSignIn, signOut as apiSignOut, type EstateSession } from "@/data/session";
 
 interface SessionContextValue {
-  session: GuardSession | null;
+  session: EstateSession | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -12,7 +12,7 @@ const SessionContext = createContext<SessionContextValue | null>(null);
 
 /** One source of truth for the session, so the router and screens cannot disagree. */
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<GuardSession | null>(null);
+  const [session, setSession] = useState<EstateSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

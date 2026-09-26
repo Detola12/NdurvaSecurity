@@ -15,7 +15,8 @@ npm run ios        # needs macOS
 npm run typecheck
 ```
 
-Any password signs you in while the API is still stubbed. Codes to try:
+Any email and password sign you in as Winter Estate while the API is still
+stubbed. Codes to try:
 
 | Code | What happens |
 | --- | --- |
@@ -30,7 +31,7 @@ Any password signs you in while the API is still stubbed. Codes to try:
 
 | Route | What it is |
 | --- | --- |
-| `app/sign-in.tsx` | Email and password, forgot password, biometric option. |
+| `app/sign-in.tsx` | The estate's gate account: email and password, forgot password, biometric option. |
 | `app/(app)/index.tsx` | The keypad. Home, per the design. |
 | `app/(app)/scan.tsx` | Camera, reached from the keypad. Reticle, torch, typed fallback. |
 | `app/(app)/pass.tsx` | The pass, with Check In and Check Out. |
@@ -47,9 +48,15 @@ no payment status, no other property. The `Pass` type in
 someone has to make deliberately, not something that happens by adding a field
 to a screen.
 
-**One property per account.** It comes from the session, and there is no UI
-anywhere that could change it. That is the guard account model from the PRD,
-enforced by there being nothing to enforce.
+**One account per estate, not one per guard.** Ndurva creates a single gate
+account for each estate, and everyone on duty there signs in with it. There is
+no sign up, and no guard name anywhere in the app. The estate comes from the
+session, and there is no UI anywhere that could change it, so a gate phone can
+only verify codes for the estate it belongs to.
+
+The cost is that the app cannot say *which* guard checked someone in, only that
+the gate did. If that matters later, it wants a "who is on duty" step after
+sign-in, not personal accounts back.
 
 **Looking a code up is not the same as passing through.** Check In and Check
 Out are separate deliberate actions, so opening a pass records nothing. A
@@ -100,6 +107,9 @@ result screens.
 - **The account screen is not in the Figma.** Added because signing out has to
   live somewhere. Replace it if the design covers this later.
 - **Sign-in accepts any password.** It has to, until there is an API.
+- **Changing the gate account's password signs out nobody yet.** With one
+  shared login, a guard who leaves still knows it. The API should revoke
+  existing tokens when the password changes, so a reset actually locks them out.
 
 ## Running it on the web
 
