@@ -40,14 +40,14 @@ export default function SignInScreen() {
 
         <View style={s.intro}>
           <Text style={s.title}>Welcome back.</Text>
-          <Text style={s.subtitle}>Log in to your account</Text>
+          <Text style={s.subtitle}>Log in with your estate&apos;s gate account</Text>
         </View>
 
         <Field
-          label="Email Address"
+          label="Estate Email Address"
           value={email}
           onChangeText={setEmail}
-          placeholder="johndoe@email.com"
+          placeholder="gate@yourestate.com"
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
@@ -80,7 +80,7 @@ export default function SignInScreen() {
           </Pressable>
         </View>
 
-        <Pressable accessibilityRole="button" style={s.forgotWrap} onPress={() => setError("Ask your facility manager to reset your password.")}>
+        <Pressable accessibilityRole="button" style={s.forgotWrap} onPress={() => setError("Ask your estate manager to reset the gate account's password.")}>
           <Text style={s.forgot}>Forgot password?</Text>
         </Pressable>
 
@@ -106,11 +106,10 @@ export default function SignInScreen() {
           disabled
           onPress={() => {}}
         />
-        <Text style={s.biometricNote}>Available once your account has been set up on this device.</Text>
+        <Text style={s.biometricNote}>Available once this device has been set up for your estate.</Text>
 
-        <Text style={s.signup}>
-          Don&apos;t have an account? <Text style={s.signupLink}>Sign up</Text>
-        </Text>
+        {/* No sign up: gate accounts are created per estate, not by guards. */}
+        <Text style={s.shared}>One account per estate, shared by everyone on duty at the gate.</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -144,6 +143,5 @@ const s = StyleSheet.create({
 
   biometricNote: { color: colors.textFaint, fontSize: 12, textAlign: "center", marginTop: -spacing.sm },
 
-  signup: { color: colors.textMuted, fontSize: 14, textAlign: "center", marginTop: "auto", paddingTop: spacing.lg },
-  signupLink: { color: colors.primary, fontWeight: "600" },
+  shared: { color: colors.textMuted, fontSize: 14, textAlign: "center", marginTop: "auto", paddingTop: spacing.lg },
 });
