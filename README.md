@@ -20,12 +20,25 @@ stubbed. Codes to try:
 
 | Code | What happens |
 | --- | --- |
-| `482212` | Guest, Emeka Adinuke, two-way, the pass from the design |
+| **Valid** | |
+| `482212` | Guest, Emeka Adinuke, two-way, not used yet. The pass from the design. |
 | `482913` | Resident, Chisom Okafor, does not expire |
-| `118342` | Guest, one-way, already checked in |
-| `660271` | Rejected, the pass expired |
-| `904417` | Rejected, the resident cancelled it |
+| `731095` | Resident, Ngozi Eze, does not expire |
+| `559120` | Guest, one-way, not used yet. Offers Check In only. |
+| `305518` | Guest, two-way, already checked in. Only Check Out is left. |
+| `118342` | Guest, one-way, already checked in. Nothing left to do. |
+| `227604` | Guest, two-way, checked in and out. Nothing left to do. |
+| `690034` | Guest with a long name and address, for checking layouts |
+| **Rejected** | |
+| `660271` | The pass expired |
+| `904417` | The resident cancelled it |
+| `415862` | Not valid yet: it starts tomorrow |
+| `873306` | A code from a different estate |
+| `348760` | A resident code that has been deactivated |
 | anything else | "Wrong code please try again" |
+
+Check-ins are kept in memory only, so reloading the app puts every pass back
+the way it is listed here.
 
 ## Screens
 
